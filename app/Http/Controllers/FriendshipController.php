@@ -38,7 +38,8 @@ class FriendshipController extends Controller
 
     public function myFriends(Request $request)
     {
-        return $request->user()->friends;
+        $user = $request->user();
+        return $user->sentFriends->merge($user->receivedFriends)->values();
     }
 
     public function pending(Request $request)
@@ -47,5 +48,23 @@ class FriendshipController extends Controller
             ->where('friend_id', $request->user()->id)
             ->where('status', 'pending')
             ->get();
+    }
+
+    public function sendByUsername(Request $request, $username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+
+        if ($user->id == $request->user()->id) {
+            return response()->json(['message' => 'No puedes agregarte'], 400);
+        }
+
+        $friendship = Friendship::firstOrCreate([
+            'user_id' => $request->user()->id,
+            'friend_id' => $user->id,
+        ], [
+            'status' => 'pending'
+        ]);
+
+        return $friendship;
     }
 }

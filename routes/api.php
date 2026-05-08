@@ -35,13 +35,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/posts/{post}/like', [LikeController::class, 'unlike']);
 
     // friendships
-    Route::post('/users/{user}/friend', [FriendshipController::class, 'send']);
+    //Route::post('/users/{user}/friend', [FriendshipController::class, 'send']);
     Route::get('/friends', [FriendshipController::class, 'myFriends']);
     Route::post('/friendships/{friendship}/accept', [FriendshipController::class, 'accept']);
     Route::get('/friendships/pending', [FriendshipController::class, 'pending']);
+    Route::post('/users/username/{username}/friend', [FriendshipController::class, 'sendByUsername']);
+    Route::get('/users/search', [UserController::class, 'search']);
+
+
 });
 
 Route::middleware('auth:sanctum')->post('/logout', function (\Illuminate\Http\Request $request) {
     $request->user()->currentAccessToken()->delete();
     return response()->json(['message' => 'ok']);
 });
+
