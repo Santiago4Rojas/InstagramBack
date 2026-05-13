@@ -8,10 +8,19 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-     public function index()
+    public function index(Request $request)
     {
-        // feed simple: últimos posts con user, profile, likes, comments
+        $user = $request->user();
+
+        // IDs de amigos aceptados (enviados y recibidos)
+        $friendIds = $user->sentFriends()->pluck('users.id')
+            ->merge($user->receivedFriends()->pluck('users.id'));
+
+        // Posts propios + posts de amigos
+        $allowedIds = $friendIds->push($user->id)->unique()->values();
+
         return Post::with(['user.profile', 'likes', 'comments.user.profile'])
+            ->whereIn('user_id', $allowedIds)
             ->latest()
             ->paginate(20);
     }

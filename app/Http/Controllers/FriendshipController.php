@@ -52,14 +52,16 @@ class FriendshipController extends Controller
 
     public function sendByUsername(Request $request, $username)
     {
-        $user = User::where('username', $username)->firstOrFail();
+        $user = \App\Models\User::whereHas('profile', function($q) use ($username) {
+            $q->where('username', $username);
+        })->firstOrFail();
 
         if ($user->id == $request->user()->id) {
             return response()->json(['message' => 'No puedes agregarte'], 400);
         }
 
-        $friendship = Friendship::firstOrCreate([
-            'user_id' => $request->user()->id,
+        $friendship = \App\Models\Friendship::firstOrCreate([
+            'user_id'   => $request->user()->id,
             'friend_id' => $user->id,
         ], [
             'status' => 'pending'

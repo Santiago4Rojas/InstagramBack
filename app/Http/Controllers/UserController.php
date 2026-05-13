@@ -9,13 +9,26 @@ class UserController extends Controller
 {
     public function search(Request $request)
     {
-        $username = $request->query('username');
+        $username = $request->query('username', '');
 
-        $users = User::where('username', 'like', '%' . $username . '%')
+        if (strlen($username) < 1) {
+            return response()->json([]);
+        }
+
+        $users = User::with('profile')
+            ->whereHas('profile', function ($q) use ($username) {
+                $q->where('username', 'like', '%' . $username . '%');
+            })
             ->where('id', '!=', $request->user()->id)
-            ->select('id', 'name', 'username')
             ->limit(10)
-            ->get();
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id'       => $user->id,
+                    'name'     => $user->name,
+                    'username' => $user->profile?->username ?? '',
+                ];
+            });
 
         return response()->json($users);
     }
