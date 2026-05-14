@@ -1,0 +1,12 @@
+#!/bin/sh
+changed=$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD)
+
+if echo "$changed" | grep -qE "composer(\.(json|lock))?"; then
+  echo "[hook] composer.json actualizado — ejecutando composer install..."
+  composer install --no-interaction --prefer-dist
+fi
+
+if echo "$changed" | grep -q "database/migrations"; then
+  echo "[hook] Nuevas migraciones — ejecutando php artisan migrate..."
+  php artisan migrate --force
+fi
