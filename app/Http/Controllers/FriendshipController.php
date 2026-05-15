@@ -23,7 +23,9 @@ class FriendshipController extends Controller
     public function myFriends(Request $request)
     {
         $user = $request->user();
-        return $user->sentFriends->merge($user->receivedFriends)->values();
+        $sent     = $user->sentFriends()->with('profile')->get();
+        $received = $user->receivedFriends()->with('profile')->get();
+        return $sent->merge($received)->values();
     }
 
     public function pending(Request $request)

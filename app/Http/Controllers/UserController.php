@@ -7,6 +7,18 @@ use App\Models\User;
 
 class UserController extends Controller
 {
+    public function show(User $user)
+    {
+        $user->load('profile');
+        return response()->json([
+            'id'          => $user->id,
+            'name'        => $user->name,
+            'username'    => $user->profile?->username,
+            'avatar'      => $user->profile?->avatar,
+            'avatar_data' => $user->profile?->avatar_data,
+        ]);
+    }
+
     public function search(Request $request)
     {
         $username = $request->query('username', '');
@@ -24,10 +36,11 @@ class UserController extends Controller
             ->get()
             ->map(function ($user) {
                 return [
-                    'id'       => $user->id,
-                    'name'     => $user->name,
-                    'username' => $user->profile?->username ?? '',
-                    'avatar'   => $user->profile?->avatar,
+                    'id'          => $user->id,
+                    'name'        => $user->name,
+                    'username'    => $user->profile?->username ?? '',
+                    'avatar'      => $user->profile?->avatar,
+                    'avatar_data' => $user->profile?->avatar_data,
                 ];
             });
 

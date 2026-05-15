@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Story extends Model
 {
-    protected $fillable = ['user_id', 'image', 'media_type', 'caption', 'expires_at'];
+    protected $fillable = ['user_id', 'image', 'image_data', 'media_type', 'caption', 'expires_at'];
 
     protected $casts = [
         'expires_at' => 'datetime',

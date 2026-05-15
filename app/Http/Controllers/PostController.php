@@ -12,11 +12,9 @@ class PostController extends Controller
     {
         $user = $request->user();
 
-        // IDs de amigos aceptados (enviados y recibidos)
         $friendIds = $user->sentFriends()->pluck('users.id')
             ->merge($user->receivedFriends()->pluck('users.id'));
 
-        // Posts propios + posts de amigos
         $allowedIds = $friendIds->push($user->id)->unique()->values();
 
         return Post::with(['user.profile', 'likes', 'comments.user.profile'])
@@ -35,16 +33,19 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'image' => 'required|image|max:2048',
+            'image'   => 'required|image|max:10240',
             'caption' => 'nullable|string'
         ]);
 
-        $path = $request->file('image')->store('posts', 'public');
+        $file      = $request->file('image');
+        $path      = $file->store('posts', 'public');
+        $imageData = $this->encodeBase64($file);
 
         $post = Post::create([
-            'user_id' => $request->user()->id,
-            'image' => $path,
-            'caption' => $data['caption'] ?? null,
+            'user_id'    => $request->user()->id,
+            'image'      => $path,
+            'image_data' => $imageData,
+            'caption'    => $data['caption'] ?? null,
         ]);
 
         return $post->load('user.profile');
@@ -52,17 +53,52 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
-        return $post->load(['user.profile','comments.user.profile','likes']);
+        return $post->load(['user.profile', 'comments.user.profile', 'likes']);
+    }
+
+    public function update(Request $request, Post $post)
+    {
+        if ($post->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+
+        $data = $request->validate([
+            'image'   => 'nullable|image|max:10240',
+            'caption' => 'nullable|string',
+        ]);
+
+        if ($request->hasFile('image')) {
+            if ($post->image) {
+                Storage::disk('public')->delete($post->image);
+            }
+            $file             = $request->file('image');
+            $post->image      = $file->store('posts', 'public');
+            $post->image_data = $this->encodeBase64($file);
+        }
+
+        if ($request->has('caption')) {
+            $post->caption = $data['caption'];
+        }
+
+        $post->save();
+        return $post->load('user.profile');
     }
 
     public function destroy(Post $post, Request $request)
     {
         if ($post->user_id !== $request->user()->id) {
-            return response()->json(['message'=>'No autorizado'], 403);
+            return response()->json(['message' => 'No autorizado'], 403);
         }
 
         Storage::disk('public')->delete($post->image);
         $post->delete();
-        return response()->json(['message'=>'Eliminado']);
+        return response()->json(['message' => 'Eliminado']);
+    }
+
+    private function encodeBase64($file): string
+    {
+        $mime = $file->getMimeType();
+        $data = base64_encode(file_get_contents($file->getRealPath()));
+        return 'data:' . $mime . ';base64,' . $data;
     }
 }

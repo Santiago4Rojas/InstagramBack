@@ -33,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/posts', [PostController::class, 'index']);
     Route::post('/posts', [PostController::class, 'store']);
     Route::get('/posts/{post}', [PostController::class, 'show']);
+    Route::post('/posts/{post}', [PostController::class, 'update']); // POST with _method=PUT for multipart
+    Route::put('/posts/{post}', [PostController::class, 'update']);
     Route::delete('/posts/{post}', [PostController::class, 'destroy']);
 
     // comments
@@ -55,7 +57,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users/username/{username}/friend', [FriendshipController::class, 'sendByUsername']);
 
     // users
-    Route::get('/users/search', [UserController::class, 'search']);
+    Route::get('/users/search', [UserController::class, 'search']); // must be before /users/{user}
+    Route::get('/users/{user}', [UserController::class, 'show']);
 
     // messages
     Route::get('/conversations', [MessageController::class, 'conversations']);

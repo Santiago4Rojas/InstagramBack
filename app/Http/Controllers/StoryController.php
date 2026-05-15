@@ -45,11 +45,13 @@ class StoryController extends Controller
         $mime      = $file->getMimeType();
         $mediaType = str_starts_with($mime, 'video/') ? 'video' : 'image';
 
-        $path = $file->store('stories', 'public');
+        $path      = $file->store('stories', 'public');
+        $imageData = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
 
         $story = Story::create([
             'user_id'    => $request->user()->id,
             'image'      => $path,
+            'image_data' => $imageData,
             'media_type' => $mediaType,
             'caption'    => $request->input('caption'),
             'expires_at' => now()->addHours(24),

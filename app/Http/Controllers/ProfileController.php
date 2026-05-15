@@ -90,8 +90,10 @@ class ProfileController extends Controller
             \Illuminate\Support\Facades\Storage::disk('public')->delete($profile->avatar);
         }
 
-        $path = $request->file('avatar')->store('avatars', 'public');
-        $profile->update(['avatar' => $path]);
+        $file       = $request->file('avatar');
+        $path       = $file->store('avatars', 'public');
+        $avatarData = 'data:' . $file->getMimeType() . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
+        $profile->update(['avatar' => $path, 'avatar_data' => $avatarData]);
 
         return response()->json($profile);
     }
