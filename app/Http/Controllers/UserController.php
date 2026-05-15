@@ -27,6 +27,7 @@ class UserController extends Controller
                     'id'       => $user->id,
                     'name'     => $user->name,
                     'username' => $user->profile?->username ?? '',
+                    'avatar'   => $user->profile?->avatar,
                 ];
             });
 

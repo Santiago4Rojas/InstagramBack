@@ -25,6 +25,13 @@ class PostController extends Controller
             ->paginate(20);
     }
 
+    public function explore(Request $request)
+    {
+        return Post::with(['user.profile', 'likes', 'comments'])
+            ->latest()
+            ->paginate(20);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([

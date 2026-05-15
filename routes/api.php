@@ -11,6 +11,8 @@ use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\NotificationController;
 
 Route::middleware('throttle:10,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -27,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar']);
 
     // posts
+    Route::get('/posts/explore', [PostController::class, 'explore']); // must be before /posts/{post}
     Route::get('/posts', [PostController::class, 'index']);
     Route::post('/posts', [PostController::class, 'store']);
     Route::get('/posts/{post}', [PostController::class, 'show']);
@@ -53,6 +56,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // users
     Route::get('/users/search', [UserController::class, 'search']);
+
+    // messages
+    Route::get('/conversations', [MessageController::class, 'conversations']);
+    Route::get('/messages/{user}', [MessageController::class, 'index']);
+    Route::post('/messages/{user}', [MessageController::class, 'store']);
+
+    // notifications
+    Route::get('/notifications', [NotificationController::class, 'index']);
 
     // logout
     Route::post('/logout', function (Request $request) {
