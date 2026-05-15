@@ -65,10 +65,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/messages/{user}', [MessageController::class, 'index']);
     Route::post('/messages/{user}', [MessageController::class, 'store']);
 
-    // diagnostic (temporal — remove after confirming messages work)
-    Route::get('/debug/messages-schema', function () {
-        $cols = \Illuminate\Support\Facades\Schema::getColumnListing('messages');
-        return response()->json(['columns' => $cols]);
+    // diagnostic — open in browser while logged in
+    Route::get('/debug/messages/{userId}', function ($userId) {
+        $cols      = \Illuminate\Support\Facades\Schema::getColumnListing('messages');
+        $needed    = ['sender_id', 'receiver_id', 'body'];
+        $missing   = array_values(array_diff($needed, $cols));
+        $insertErr = null;
+        $inserted  = false;
+        try {
+            \Illuminate\Support\Facades\DB::table('messages')->insert([
+                'sender_id'   => 1,
+                'receiver_id' => (int) $userId,
+                'body'        => '__test__',
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+            \Illuminate\Support\Facades\DB::table('messages')->where('body', '__test__')->delete();
+            $inserted = true;
+        } catch (\Exception $e) {
+            $insertErr = $e->getMessage();
+        }
+        return response()->json(compact('cols', 'missing', 'inserted', 'insertErr'));
     });
 
     // notifications
