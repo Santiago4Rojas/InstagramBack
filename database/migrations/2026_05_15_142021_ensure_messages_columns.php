@@ -11,22 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // If table was pre-existing with different schema, add missing columns
         Schema::table('messages', function (Blueprint $table) {
+            // Use unsignedBigInteger (no FK constraint) to avoid failures on
+            // pre-existing tables with data or non-standard structure
             if (!Schema::hasColumn('messages', 'sender_id')) {
-                $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
+                $table->unsignedBigInteger('sender_id')->nullable();
             }
             if (!Schema::hasColumn('messages', 'receiver_id')) {
-                $table->foreignId('receiver_id')->constrained('users')->cascadeOnDelete();
+                $table->unsignedBigInteger('receiver_id')->nullable();
             }
             if (!Schema::hasColumn('messages', 'body')) {
-                $table->text('body');
+                $table->text('body')->nullable();
             }
             if (!Schema::hasColumn('messages', 'read_at')) {
                 $table->timestamp('read_at')->nullable();
             }
             if (!Schema::hasColumn('messages', 'created_at')) {
-                $table->timestamps();
+                $table->timestamp('created_at')->nullable();
+            }
+            if (!Schema::hasColumn('messages', 'updated_at')) {
+                $table->timestamp('updated_at')->nullable();
             }
         });
     }

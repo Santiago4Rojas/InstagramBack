@@ -65,6 +65,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/messages/{user}', [MessageController::class, 'index']);
     Route::post('/messages/{user}', [MessageController::class, 'store']);
 
+    // diagnostic (temporal — remove after confirming messages work)
+    Route::get('/debug/messages-schema', function () {
+        $cols = \Illuminate\Support\Facades\Schema::getColumnListing('messages');
+        return response()->json(['columns' => $cols]);
+    });
+
     // notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
 
