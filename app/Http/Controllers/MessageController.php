@@ -71,14 +71,23 @@ class MessageController extends Controller
 
     public function store(Request $request, User $user)
     {
-        $data = $request->validate(['body' => 'required|string|max:2000']);
+        try {
+            $data = $request->validate(['body' => 'required|string|max:2000']);
 
-        $message = Message::create([
-            'sender_id'   => $request->user()->id,
-            'receiver_id' => $user->id,
-            'body'        => $data['body'],
-        ]);
+            $message = Message::create([
+                'sender_id'   => $request->user()->id,
+                'receiver_id' => $user->id,
+                'body'        => $data['body'],
+            ]);
 
-        return $message->load('sender.profile');
+            return $message->load('sender.profile');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Message store error: ' . $e->getMessage());
+            return response()->json([
+                'error'   => $e->getMessage(),
+                'type'    => get_class($e),
+                'hint'    => 'Run: php artisan migrate',
+            ], 500);
+        }
     }
 }

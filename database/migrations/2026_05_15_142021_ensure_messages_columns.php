@@ -11,28 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('messages', function (Blueprint $table) {
-            // Use unsignedBigInteger (no FK constraint) to avoid failures on
-            // pre-existing tables with data or non-standard structure
-            if (!Schema::hasColumn('messages', 'sender_id')) {
-                $table->unsignedBigInteger('sender_id')->nullable();
-            }
-            if (!Schema::hasColumn('messages', 'receiver_id')) {
-                $table->unsignedBigInteger('receiver_id')->nullable();
-            }
-            if (!Schema::hasColumn('messages', 'body')) {
-                $table->text('body')->nullable();
-            }
-            if (!Schema::hasColumn('messages', 'read_at')) {
+        $required = ['sender_id', 'receiver_id', 'body'];
+        $hasAll   = collect($required)->every(fn($col) => Schema::hasColumn('messages', $col));
+
+        if (!$hasAll) {
+            // Drop and recreate — table is empty or has wrong schema
+            Schema::dropIfExists('messages');
+            Schema::create('messages', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('sender_id');
+                $table->unsignedBigInteger('receiver_id');
+                $table->text('body');
                 $table->timestamp('read_at')->nullable();
-            }
-            if (!Schema::hasColumn('messages', 'created_at')) {
-                $table->timestamp('created_at')->nullable();
-            }
-            if (!Schema::hasColumn('messages', 'updated_at')) {
-                $table->timestamp('updated_at')->nullable();
-            }
-        });
+                $table->timestamps();
+                $table->index(['sender_id', 'receiver_id']);
+                $table->index(['receiver_id', 'sender_id']);
+            });
+        }
     }
 
     public function down(): void
